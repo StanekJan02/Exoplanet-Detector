@@ -32,8 +32,9 @@ class ConfigManager:
 config = ConfigManager()
 
 
-print(f"TEST SEQ_LENGTH = {config.SEQ_LENGTH}")
-print(f"TEST BATCH_SIZE = {config.BATCH_SIZE}")
-print(f"TEST EPOCHS = {config.EPOCHS}")
-print(f"TEST LEARNING_RATE = {config.LEARNING_RATE}")
+if __name__ == "__main__":
+    print(f"TEST SEQ_LENGTH = {config.SEQ_LENGTH}")
+    print(f"TEST BATCH_SIZE = {config.BATCH_SIZE}")
+    print(f"TEST EPOCHS = {config.EPOCHS}")
+    print(f"TEST LEARNING_RATE = {config.LEARNING_RATE}")
 

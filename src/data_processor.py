@@ -1,50 +1,42 @@
 import pandas as pd
-import numpy as np
-
 from sklearn.preprocessing import StandardScaler
 from imblearn.over_sampling import SMOTE
+from scipy.signal import savgol_filter
 from config import config
-
-from config import config
-
 
 class DataProcessor:
     def __init__(self):
+        print("[INFO] Initializing Data Processor...")
         self.scaler = StandardScaler()
         self.smote = SMOTE(random_state=42)
 
     def load_data(self):
+        print("[INFO] Loading datasets...")
         train_df = pd.read_csv(config.TRAIN_DATA_PATH)
         test_df = pd.read_csv(config.TEST_DATA_PATH)
-        return train_df, test_df 
+        return train_df, test_df
 
     def process_data(self, train_df, test_df):
+        print("[INFO] Processing data (Separation, Smoothing, Scaling, SMOTE)...")
 
+        X_train = train_df.drop('LABEL', axis=1).values
         y_train = train_df['LABEL'].apply(lambda x: 1 if x == 2 else 0).values
-        y_test  = test_df['LABEL'].apply(lambda x: 1 if x == 2 else 0).values
-
-        x_train = train_df.drop('LABEL', axis=1).values
-        x_test = test_df.drop('LABEL', axis=1).values
-
-        x_train_scaled = self.scaler.fit_transform(x_train)
-        x_test_scaled = self.scaler.transform(x_test)
-
-        planets_before = sum(y_train)
-        non_planets_before = len(y_train) - planets_before
-        print(f"[DEBUG] Before SMOTE -> Planets: {planets_before}, Non-planets: {non_planets_before}")
-        x_train_balanced, y_train_balanced = self.smote.fit_resample(x_train_scaled, y_train)
         
-        planets_after = sum(y_train_balanced)
-        non_planets_after = len(y_train_balanced) - planets_after
-        print(f"[DEBUG] After SMOTE  -> Planets: {planets_after}, Non-planets: {non_planets_after}")
+        X_test = test_df.drop('LABEL', axis=1).values
+        y_test = test_df['LABEL'].apply(lambda x: 1 if x == 2 else 0).values
 
-        return x_train_balanced, y_train_balanced, x_test_scaled, y_test
+        print("[INFO] Applying Savitzky-Golay filter to reduce high-frequency noise...")
+        X_train = savgol_filter(X_train, window_length=15, polyorder=3, axis=1)
+        X_test = savgol_filter(X_test, window_length=15, polyorder=3, axis=1)
+    
+        print("[INFO] Scaling features...")
+        X_train = self.scaler.fit_transform(X_train)
+        X_test = self.scaler.transform(X_test)
 
+        print("[INFO] Balancing classes with SMOTE...")
+        X_train, y_train = self.smote.fit_resample(X_train, y_train)
 
+        X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
+        X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
 
-
-if __name__ == "__main__":
-    processor = DataProcessor()
-    train_data, test_data = processor.load_data()
-    print(f"[DEBUG] Train data shape: {train_data.shape}")
-    print(f"[DEBUG] Test data shape: {test_data.shape}")
+        return X_train, y_train, X_test, y_test

@@ -94,9 +94,10 @@ The dataset is split into `exoTrain.csv` (5,087 records) and `exoTest.csv` (570 
 ├── .gitignore
 ├── README.md
 └── requirements.txt
+```
 
-Tech stack
+## Tech stack
 Python · TensorFlow/Keras · SciPy · scikit-learn · imbalanced-learn · pandas · Matplotlib
 
-Author
+## Author
 Jan Stanek, Computer Science, Silesian University of Technology.

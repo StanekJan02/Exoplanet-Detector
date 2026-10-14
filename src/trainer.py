@@ -3,6 +3,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 from config import config
 from data_processor import DataProcessor
 from model_builder import ExoplanetCNN
+from visualizer import Visualizer
 
 
 class ModelTrainer:
@@ -42,7 +43,11 @@ class ModelTrainer:
         print("[INFO] Evaluating on unseen test data...")
         test_loss, test_accuracy = model.evaluate(X_test, y_test, verbose=0)
         print(f"\n[RESULT] Test Accuracy: {test_accuracy * 100:.2f}%")
-        
+        visualizer = Visualizer()
+        visualizer.plot_history(history)
+        y_pred_probs = model.predict(X_test)
+        visualizer.plot_confusion_matrix(y_test, y_pred_probs)
+        visualizer.plot_light_curve(X_train[0], y_train[0])
         return model, history
 
 if __name__ == "__main__":

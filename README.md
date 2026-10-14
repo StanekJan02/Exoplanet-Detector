@@ -60,7 +60,6 @@ The dataset is split into `exoTrain.csv` (5,087 records) and `exoTest.csv` (570 
 ## Results
 
 ![Smoothed Signal](assets/signal.png)
-![Confusion Matrix](assets/confusion_matrix.png)
 ![Training History](assets/history.png)
 
 - **Baseline (always predict "no planet"):** ~99.1% overall accuracy.

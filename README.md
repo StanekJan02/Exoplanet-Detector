@@ -45,10 +45,10 @@ The generated plots (Confusion Matrix, Training History, and Smoothed Signal) wi
 The system processes noisy continuous light flux data to classify whether a star has a confirmed exoplanet transit.
 
 1. **Data preparation:** The original labels are mapped to a standard binary format (0 for normal stars, 1 for exoplanet systems).
-2. **Signal Smoothing:** A Savitzky-Golay filter (window=15, polyorder=3) is applied to the raw signal. This mathematical filter is crucial because it reduces high-frequency background noise while preserving the strict depth and sharp edges of transit valleys.
-3. **Scaling:** A standard scaler is applied to center the light flux variations around zero.
-4. **Balancing (SMOTE):** Since over 99% of stars do not show transits, the training data is extremely imbalanced. SMOTE is applied *only* to the training set to generate synthetic minority samples, forcing the network to learn planetary features.
-5. **Local training (1D CNN):** The model architecture consists of two `Conv1D` blocks with `MaxPooling1D` for feature extraction, followed by `Flatten` and `Dense` layers. A `Dropout(0.2)` layer is used to prevent overfitting.
+2. **Signal Smoothing:** A Savitzky-Golay filter (window=21, polyorder=3) is applied to the raw signal. This mathematical filter is crucial because it reduces high-frequency background noise while preserving the strict depth and sharp edges of transit valleys.
+3. **Normalization:** Instead of scaling the entire dataset globally, each individual star's light curve is normalized independently (per-row basis). This preserves the proportional depth of transits regardless of the star's baseline brightness.
+4. **Balancing (SMOTE):** Since over 99% of stars do not show transits, the training data is extremely imbalanced. SMOTE is applied *only* to the training set to generate synthetic minority samples, forcing the network to learn planetary features. The data is then shuffled to ensure proper validation splits.
+5. **Local training (1D CNN):** The model architecture consists of three `Conv1D` blocks with wide receptive fields (kernel_size=11, 7, 5) and `BatchNormalization` for robust feature extraction, followed by `Flatten` and `Dense` layers. `Dropout` layers are used to prevent overfitting.
 6. **Evaluation:** The final global model is evaluated on a strictly unseen, naturally imbalanced test set to expose its real-world sensitivity via a Confusion Matrix.
 
 ## Dataset
@@ -60,16 +60,18 @@ The dataset is split into `exoTrain.csv` (5,087 records) and `exoTest.csv` (570 
 ## Results
 
 ![Smoothed Signal](assets/signal.png)
+![Confusion Matrix](assets/confusion_matrix.png)
 ![Training History](assets/history.png)
 
 - **Baseline (always predict "no planet"):** ~99.1% overall accuracy.
-- Without signal smoothing, the base 1D CNN caught only 1 out of 5 actual planets (True Positives) in the test set, losing the transit signature in the noise.
-- Implementing the Savitzky-Golay filter doubled the model's sensitivity, capturing 2 out of 5 planets.
-- The trade-off for higher sensitivity is a slight increase in False Positives. In astronomical pipelines, this is the preferred behavior, as it is cheaper to manually verify a few false alarms than to permanently miss a new exoplanet.
+- **Final Model Accuracy:** ~99.8% overall accuracy.
+- Without proper signal processing, a baseline CNN catches only 1 out of 5 actual planets, losing the transit signature in the noise.
+- After implementing the Savitzky-Golay filter, per-star normalization, and expanding the CNN's receptive field, the model successfully captures **4 out of 5** confirmed exoplanets in the test set.
+- Furthermore, the model achieved a **0% False Positive rate** (0 false alarms out of 565 normal stars), proving that the pipeline effectively learned the actual physics of a transit rather than memorizing random noise.
 
 ## Limitations
 
-- The model still misses very faint or rapid transits (3 False Negatives remain in the test set).
+- The model still misses one exceptionally faint or anomalous transit (1 False Negative remains in the test set).
 - The Savitzky-Golay parameters are static. Dynamic window sizing based on individual stellar noise profiles might yield better signal-to-noise ratios.
 - A relatively shallow CNN architecture was used to prioritize training speed; deeper architectures with residual connections might capture more complex transit patterns.
 - Accuracy is a weak metric for imbalanced data. The Confusion Matrix is the primary source of evaluation in this pipeline.

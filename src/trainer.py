@@ -71,7 +71,7 @@ class ModelTrainer:
 
 if __name__ == "__main__":
     trainer = ModelTrainer()
-    trainer.run_training_pipeline()import os
+    trainer.run_training_pipeline()
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 

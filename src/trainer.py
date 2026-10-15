@@ -4,8 +4,15 @@ from config import config
 from data_processor import DataProcessor
 from model_builder import ExoplanetCNN
 from visualizer import Visualizer
-
-
+import os
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+import random
+import numpy as np
+import tensorflow as tf
+random.seed(42)
+np.random.seed(42)
+tf.random.set_seed(42)
 class ModelTrainer:
     def __init__(self):
         self.processor = DataProcessor()

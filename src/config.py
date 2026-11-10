@@ -1,40 +1,37 @@
-import os 
-import argparse
+from pathlib import Path
 
-class ConfigManager:
-    def __init__(self):
-        self.BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.TRAIN_DATA_PATH = os.path.join(self.BASE_DIR, 'data', 'exoTrain.csv')
-        self.TEST_DATA_PATH = os.path.join(self.BASE_DIR, 'data', 'exoTest.csv')
-        self._parse_arguments()
+# Ścieżki katalogów projektu
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / "data"
+MODELS_DIR = BASE_DIR / "models"
+ASSETS_DIR = BASE_DIR / "assets"
 
-    def _parse_arguments(self):
-        parser = argparse.ArgumentParser(description="==[Exoplanet Detector - models' settings]==")
+# Tworzenie katalogów, jeśli nie istnieją
+for directory in (DATA_DIR, MODELS_DIR, ASSETS_DIR):
+    directory.mkdir(parents=True, exist_ok=True)
 
-        parser.add_argument('-s', '--seq-length',type=int, default=3197,
-                            help='Length of time series')
-        parser.add_argument('-b', '--batch-size',type=int, default=32,
-                            help='Batch size')
-        parser.add_argument('-e', '--epochs', type=int, default=50,
-                            help='No. epochs')
-        parser.add_argument('-l','--learning-rate', type=float, default=0.001,
-                            help='Learning rate')
+# Ścieżki do zbioru Kaggle "Exoplanet Hunting in Deep Space"
+TRAIN_CSV_PATH = DATA_DIR / "exoTrain.csv"
+TEST_CSV_PATH = DATA_DIR / "exoTest.csv"
+MODEL_SAVE_PATH = MODELS_DIR / "cnn_exoplanet_detector.keras"
 
-        args, _ = parser.parse_known_args()
+# Parametry sygnału (Kepler Long Cadence: 3197 próbek, krok ~29.4 min = 0.0204 dnia)
+SEQUENCE_LENGTH = 3197
+KEPLER_CADENCE_DAYS = 0.02043365
 
-        self.SEQ_LENGTH = args.seq_length
-        self.BATCH_SIZE = args.batch_size
-        self.EPOCHS = args.epochs
-        self.LEARNING_RATE = args.learning_rate
+# Hiperparametry treningu sieci CNN
+RANDOM_SEED = 42
+BATCH_SIZE = 32
+EPOCHS = 40
+LEARNING_RATE = 1e-3
+VALIDATION_SPLIT = 0.15
 
+# Augmentacja rzadkiej klasy pozytywnej (37 gwiazd z planetą w zbiorze treningowym)
+AUGMENT_POSITIVE_CLASS = True
+AUGMENTATION_FACTOR = 15  # Ile dodatkowych wariantów wygenerować dla każdej planety
 
-
-config = ConfigManager()
-
-
-if __name__ == "__main__":
-    print(f"TEST SEQ_LENGTH = {config.SEQ_LENGTH}")
-    print(f"TEST BATCH_SIZE = {config.BATCH_SIZE}")
-    print(f"TEST EPOCHS = {config.EPOCHS}")
-    print(f"TEST LEARNING_RATE = {config.LEARNING_RATE}")
-
+# Parametry klasycznej metody Box Least Squares (BLS z astropy)
+BLS_MIN_PERIOD_DAYS = 0.5
+BLS_DURATIONS_DAYS = (0.04, 0.08, 0.12, 0.16, 0.20, 0.25)
+# Ile próbek ze zbioru testowego ocenić metodą BLS (None = cały zbiór testowy)
+BLS_MAX_EVAL_SAMPLES = None
